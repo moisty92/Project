@@ -185,6 +185,69 @@ class DamageText(pygame.sprite.Sprite):
             self.kill()
 damage_text_group = pygame.sprite.Group()
 
+#Game button class
+class GameButton():
+    def __init__(self, surface, x, y, image, size_x, size_y):
+        self.image = pygame.transform.scale(image, (size_x, size_y))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
+        self.surface = surface
+
+    def draw(self):
+        action = False
+
+        #get mouse position
+        pos = pygame.mouse.get_pos()
+
+        #check mouseover and clicked conditions
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                action = True
+                self.clicked = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        #draw button
+        self.surface.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
+
+# Main menu button class
+class MainMenuButton():
+	def __init__(self, image, pos, text_input, font, base_colour, hovering_colour):
+		self.image = image
+		self.x_pos = pos[0]
+		self.y_pos = pos[1]
+		self.font = font
+		self.base_colour, self.hovering_colour = base_colour, hovering_colour
+		self.text_input = text_input
+		self.text = self.font.render(self.text_input, True, self.base_colour)
+		if self.image is None:
+			self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
+    
+  #draw button
+	def update(self, screen):
+		if self.image is not None:
+			screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
+    
+  #checks for click for on button position
+	def checkForInput(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			return True
+		return False
+    
+  #changes colour on button highlight
+	def changeColour(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = self.font.render(self.text_input, True, self.hovering_colour)
+		else:
+			self.text = self.font.render(self.text_input, True, self.base_colour)
+
 def play():
     #define game variables
     current_fighter = 1
@@ -210,7 +273,6 @@ def play():
     restart_img = pygame.image.load("img/Icons/restart.png").convert_alpha()
     quitgame_img = pygame.image.load("img/Icons/quit.png").convert_alpha()
 
-
     #drawing text
     def draw_text(text, font, text_col, x, y):
         img = font.render(text, True, text_col)
@@ -229,7 +291,6 @@ def play():
         for count, i in enumerate(current_enemies_list):
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
     
-
     knight = Character(250, 390,"Knight", 50, 10, 12, 5)
     bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0)
     bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0)
@@ -239,7 +300,6 @@ def play():
     current_enemies_list.append(bandit1)
     current_enemies_list.append(bandit2)
     current_enemies_list.append(boss)
-
 
     knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
     bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
@@ -258,6 +318,9 @@ def play():
         draw_bg()
         draw_panel()
         knight_HB.draw(knight.hp)# draws the knights health bar
+        bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
+        bandit2_HB.draw(bandit2.hp)
+        
         panel_level = random.randint(1,14)
         if panel_level in range(1, 6):# will set the panel to 2 bandits
             bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
@@ -276,7 +339,10 @@ def play():
 
         knight.update()
         knight.draw()
-
+        for enemy in current_enemies_list:
+                enemy.update()
+                enemy.draw()
+        
         level = random.randint(1,14)
         if level in range(1, 6):# will draw 2 bandits
             for enemy in current_enemies_list:
@@ -425,70 +491,6 @@ def play():
 
     pygame.quit()
     sys.exit()
-
-
-#Game button class
-class GameButton():
-    def __init__(self, surface, x, y, image, size_x, size_y):
-        self.image = pygame.transform.scale(image, (size_x, size_y))
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
-        self.clicked = False
-        self.surface = surface
-
-    def draw(self):
-        action = False
-
-        #get mouse position
-        pos = pygame.mouse.get_pos()
-
-        #check mouseover and clicked conditions
-        if self.rect.collidepoint(pos):
-            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-                action = True
-                self.clicked = True
-
-        if pygame.mouse.get_pressed()[0] == 0:
-            self.clicked = False
-
-        #draw button
-        self.surface.blit(self.image, (self.rect.x, self.rect.y))
-
-        return action
-
-# Main menu button class
-class MainMenuButton():
-	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
-		self.image = image
-		self.x_pos = pos[0]
-		self.y_pos = pos[1]
-		self.font = font
-		self.base_color, self.hovering_color = base_color, hovering_color
-		self.text_input = text_input
-		self.text = self.font.render(self.text_input, True, self.base_color)
-		if self.image is None:
-			self.image = self.text
-		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
-		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
-    
-  #draw button
-	def update(self, screen):
-		if self.image is not None:
-			screen.blit(self.image, self.rect)
-		screen.blit(self.text, self.text_rect)
-    
-  #checks for click for on button position
-	def checkForInput(self, position):
-		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
-			return True
-		return False
-    
-  #changes colour on button highlight
-	def changeColour(self, position):
-		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
-			self.text = self.font.render(self.text_input, True, self.hovering_color)
-		else:
-			self.text = self.font.render(self.text_input, True, self.base_color)
       
 def LB():
     while True:
@@ -499,9 +501,9 @@ def LB():
         LB_rect = LB_text.get_rect(center=(640, 50))
         screen.blit(LB_text,LB_rect)
 
-        LB_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
+        LB_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_colour=white, hovering_colour="Green")
 
-        LB_back.changeColor(LB_mouse_pos)
+        LB_back.changeColour(LB_mouse_pos)
         LB_back.update(screen)
 
         for event in pygame.event.get():
@@ -523,9 +525,9 @@ def options():
         options_rect = options_text.get_rect(center=(640, 50))
         screen.blit(options_text, options_rect,)
 
-        options_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
+        options_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_colour=white, hovering_colour="Green")
 
-        options_back.changeColor(options_mouse_pos)
+        options_back.changeColour(options_mouse_pos)
         options_back.update(screen)
 
         for event in pygame.event.get():
@@ -547,10 +549,10 @@ def main_menu():
         menu_text = get_font(75).render("PLANET GORGON", True, white)
         menu_rect = menu_text.get_rect(center=(640, 50))
 
-        play_button = MainMenuButton(play_img, pos=(640, 150),text_input="PLAY", font=get_font(35), base_color=white, hovering_color="Green")
-        options_button = MainMenuButton(options_img, pos=(640, 300), text_input="OPTIONS", font=get_font(35), base_color=white, hovering_color="Green")
-        LB_button = MainMenuButton(LB_img, pos=(640, 450), text_input="LEADERBOARD", font=get_font(35), base_color=white, hovering_color="Green")
-        quit_botton = MainMenuButton(quit_img, pos=(640, 600),  text_input="QUIT", font=get_font(35), base_color=white, hovering_color="Green")
+        play_button = MainMenuButton(play_img, pos=(640, 150),text_input="PLAY", font=get_font(35), base_colour=white, hovering_colour="Green")
+        options_button = MainMenuButton(options_img, pos=(640, 300), text_input="OPTIONS", font=get_font(35), base_colour=white, hovering_colour="Green")
+        LB_button = MainMenuButton(LB_img, pos=(640, 450), text_input="LEADERBOARD", font=get_font(35), base_colour=white, hovering_colour="Green")
+        quit_botton = MainMenuButton(quit_img, pos=(640, 600),  text_input="QUIT", font=get_font(35), base_colour=white, hovering_colour="Green")
 
         screen.blit(menu_text, menu_rect)
 
