@@ -1,6 +1,5 @@
 import pygame
 import random
-import sys
 
 pygame.init()
 
@@ -490,8 +489,7 @@ def play():
         pygame.display.update()
 
     pygame.quit()
-    sys.exit()
-      
+    
 def LB():
     while True:
         screen.fill(black)
@@ -509,7 +507,6 @@ def LB():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if LB_back.checkForInput(LB_mouse_pos):
                     main_menu()
@@ -533,7 +530,6 @@ def options():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if options_back.checkForInput(options_mouse_pos):
                     main_menu()
@@ -563,7 +559,6 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if play_button.checkForInput(menu_pos):
                     play()
