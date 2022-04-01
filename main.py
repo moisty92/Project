@@ -1,4 +1,3 @@
-from ast import Delete
 import pygame
 import random
 import sys
@@ -162,7 +161,7 @@ def play():
             #deal damage
             strength = self.strength
             hit = self.hit()
-            armour = self.armour
+            armour = target.armour
             #checks if initial attack is greater than armour class
             if hit > armour:
               damage = random.randint(1,strength)
@@ -179,7 +178,7 @@ def play():
             damage_text_group.add(damage_text)
             if hit > armour:
               #damage text
-              damage_text = DamageText(target.rect.centerx, target.rect.y, str(damage), red)
+              damage_text = DamageText(target.rect.centerx, target.rect.y-50, str(damage), red)
               damage_text_group.add(damage_text)
             else:#Blocked text
               damage_text = DamageText(target.rect.centerx, target.rect.y-100, str("Blocked"),white)
@@ -198,6 +197,9 @@ def play():
             self.action = 3
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
+        
+        def add_potions(self):
+            self.potions += 2
 
     class HealthBar():
         def __init__(self, x, y, hp, max_hp):
@@ -233,9 +235,9 @@ def play():
     damage_text_group = pygame.sprite.Group()
 
     knight = Character(250, 390,"Knight", 50, 10, 12, 5)
-    bandit1 = Character(900, 400, "Bandit",20, 0, 0, 0)
-    bandit2 = Character(1100, 400, "Bandit",20, 0, 0, 0)
-    wizard = Character(1100, 400, "Wizard",40, 15,12, 0)
+    bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0)
+    bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0)
+    boss = Character(1100, 400, "Boss",40, 15,12, 0)
 
     bandit_list = []
     bandit_list.append(bandit1)
@@ -244,7 +246,7 @@ def play():
     knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
     bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
     bandit2_HB = HealthBar(750, screen_H - bottom_panel + 120, bandit2.hp, bandit2.max_hp)
-    wizard_HB = HealthBar(750, screen_H - bottom_panel + 120, wizard.hp, wizard.max_hp)
+    boss_HB = HealthBar(750, screen_H - bottom_panel + 120, boss.hp, boss.max_hp)
 
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
@@ -260,45 +262,45 @@ def play():
         def draw_panel_level():
           knight_HB.draw(knight.hp)# draws the knights health bar
           panel_level = random.randint(1,14)
-          if panel_level == 1 or 2 or 3 or 4 or 5:# will set the panel to 2 bandits
+          if panel_level in range(1, 6):# will set the panel to 2 bandits
             bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
             bandit2_HB.draw(bandit2.hp)
-          if panel_level == 6 or 7 or 8:# will set the panel to a bandit
+          elif panel_level in range(6, 9):# will set the panel to a bandit
             bandit1_HB.draw(bandit1.hp)
-          if panel_level == 9 or 10:# will set the panel to a wizard
-            wizard_HB.draw(wizard.hp)# draws the wizard health bar
-          if panel_level == 11:# will set the panel to a bandit and a wizard
-            wizard_HB.draw(wizard.hp)
+          elif panel_level in range(9, 11):# will set the panel to a Boss
+            boss_HB.draw(boss.hp)# draws the Boss health bar
+          elif panel_level == 11:# will set the panel to a bandit and a Boss
+            boss_HB.draw(boss.hp)
             bandit1_HB.draw(bandit1.hp)
-          if panel_level == 12 or 13 or 14:# will give the knight 2 potions
+          elif panel_level in range(12, 15):# will give the knight 2 potions
             pass
-          if bandit1.alive or bandit2.alive or wizard.alive == False:# will remove the health bar when they are dead
+          elif bandit1.alive or bandit2.alive or boss.alive == False:# will remove the health bar when they are dead
             pass
         draw_panel_level()
             
-        def characterDraw(potions):
+        def CharacterDraw():
           knight.update()
           knight.draw()
           level = random.randint(1,14)
-          if level == 1 or 2 or 3 or 4 or 5:# will draw 2 bandits
+          if level in range(1, 6):# will draw 2 bandits
             for bandit in bandit_list:
               bandit.update()
               bandit.draw()
-          elif level == 6 or 7 or 8:# will draw one bandit
+          elif level in range(6, 9):# will draw one bandit
             bandit1.update()
             bandit1.draw()
-          elif level == 9 or 10:# will draw a wizard
-            wizard.update()
-            wizard.draw()
-          elif level == 11:# will draw wizard and bandit
-            wizard.update()
-            wizard.draw()
+          elif level in range(9, 11):# will draw a boss
+            boss.update()
+            boss.draw()
+          elif level == 11:# will draw Boss and bandit
+            boss.update()
+            boss.draw()
             bandit1.update()
             bandit1.draw()
-          elif level == 12 or 13 or 14:# will give the knight 2 potions
-            potions += 2
+          elif level in range(12, 15):# will give the knight 2 potions
+            knight.add_potions()
             draw_text(("+2 Potions"), font, green, 900, 400)
-        characterDraw(potion)
+        CharacterDraw()
           
         #draw damage text
         damage_text_group.update()
@@ -321,9 +323,9 @@ def play():
                 if clicked == True and bandit.alive == True:
                     attack = True
                     target = bandit_list[count]
-                elif clicked == True and wizard.alive == True:
+                elif clicked == True and boss.alive == True:
                     attack = True
-                    target = wizard
+                    target = boss
 
         #button potions
         if potions_button.draw():
@@ -375,12 +377,12 @@ def play():
                             action_cooldown = 0
                     else:
                         current_fighter += 1 
-                    if wizard.alive:
+                    if boss.alive:
                         action_cooldown += 1
                         if action_cooldown >= action_wait_time:
                         #look for player action
                         #attack
-                            wizard.attack(knight)
+                            boss.attack(knight)
                             current_fighter += 1
                             action_cooldown = 0
                     else:
@@ -392,21 +394,21 @@ def play():
 
         #check if enemies are dead
         alive_bandits = 0
-        alive_wizard = 0
+        alive_boss = 0
         for bandit in bandit_list:
             if bandit.alive == True:
                 alive_bandits += 1
             if alive_bandits == 0:
                 pass
-        if wizard.alive == True:
-            alive_wizard +=1
-        if alive_wizard == 0:
+        if boss.alive == True:
+            alive_boss +=1
+        if alive_boss == 0:
             pass
         #gives XP bases on enemie death
-        if alive_wizard == 1:
+        if alive_boss == 1:
             totalXP += 15
         if alive_bandits == 1:
-          totalXP += 5
+          totalXP += 5 
         elif  alive_bandits == 2:
           totalXP += 5
           
