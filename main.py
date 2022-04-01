@@ -270,12 +270,13 @@ def play():
             bandit1_HB.draw(bandit1.hp)
           if panel_level == 12 or 13 or 14:# will give the knight 2 potions
             pass
-          if bandit1.alive or bandit2.alive or wizard.alive == False:
-            bandit1_HB.kill()# will remove the health bar when they are dead
-            bandit2_HB.kill()
-            wizard_HB.kill()
+          #if bandit1.alive or bandit2.alive or wizard.alive == False:
+            #bandit1_HB.kill()# will remove the health bar when they are dead
+            #bandit2_HB.kill()
+            #wizard_HB.kill()
+        draw_panel_level()
             
-        def characterDraw():
+        def characterDraw(potions):
           knight.update()
           knight.draw()
           level = random.randint(1,14)
@@ -283,20 +284,21 @@ def play():
             for bandit in bandit_list:
               bandit.update()
               bandit.draw()
-          if level == 6 or 7 or 8:# will draw one bandit
+          elif level == 6 or 7 or 8:# will draw one bandit
             bandit1.update()
             bandit1.draw()
-          if level == 9 or 10:# will draw a wizard
+          elif level == 9 or 10:# will draw a wizard
             wizard.update()
             wizard.draw()
-          if level == 11:# will draw wizard and bandit
+          elif level == 11:# will draw wizard and bandit
             wizard.update()
             wizard.draw()
             bandit1.update()
             bandit1.draw()
-          if level == 12 or 13 or 14:# will give the knight 2 potions
-            potion += 2
+          elif level == 12 or 13 or 14:# will give the knight 2 potions
+            potions += 2
             draw_text(("+2 Potions"), font, green, 900, 400)
+        characterDraw(potion)
           
         #draw damage text
         damage_text_group.update()
