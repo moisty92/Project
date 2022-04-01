@@ -15,6 +15,9 @@ pygame.display.set_caption("Planet Gorgon")
 white = (255,255,255)
 black = (0,0,0)
 green = (0,0,255)
+font = pygame.font.SysFont("Times new Roman", 26)
+red = (255,0,0)
+green = (0,255,0)
 
 #loads grey boxes for main menu
 play_img = pygame.image.load("img/Icons/Play Rect.png")
@@ -26,6 +29,161 @@ quit_img = pygame.image.load("img/Icons/Quit Rect.png")
 
 def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.SysFont("Times new Roman", size)
+
+class Character():
+    def __init__(self,x , y, name, max_hp,strength,armour,potions):
+        self.name = name
+        self.max_hp = max_hp
+        self.hp = max_hp
+        self.strength = strength
+        self.armour = armour
+        self.start_potions = potions
+        self.potions = potions
+        self.alive = True
+        self.animation_list = []
+        self.action = 0  #0:idle, 1:attack, 2:hurt, 3:death
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+    
+        #load idle images
+        temp_list = []
+        for i in range(8):
+            img = pygame.image.load(f"img/{self.name}/Idle/{i}.png")
+            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
+        #load attack images
+        temp_list = []
+        for i in range(8):
+            img = pygame.image.load(f"img/{self.name}/Attack/{i}.png")
+            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
+        #load hurt images
+        temp_list = []
+        for i in range(4):
+            img = pygame.image.load(f"img/{self.name}/Hurt/{i}.png")
+            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
+        #load death images
+        temp_list = []
+        for i in range(10):
+            img = pygame.image.load(f"img/{self.name}/Death/{i}.png")
+            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            temp_list.append(img)
+        self.animation_list.append(temp_list) 
+
+        self.image = self.animation_list[self.action][self.frame_index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+    
+    def update(self):
+        animation_cooldown = 100
+        #handle animation
+        #update image
+        self.image = self.animation_list[self.action][self.frame_index]
+        #check if enough time has passed 
+        #   current time        - last updated   if greater than 100ms time to update to the next image    
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        #add in loop at end of images
+        if self.frame_index >= len(self.animation_list[self.action]):
+            if self.action == 3:
+                self.frame_index = len(self.animation_list[self.action]) - 1
+            else:
+                self.idle()
+    
+    def idle(self):
+        self.action = 0
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+    
+    def hit(self): # creates a random attack value
+        return random.randint(1, 20)
+
+    def attack(self,target):
+        #deal damage
+        strength = self.strength
+        hit = self.hit()
+        armour = target.armour
+        #checks if initial attack is greater than armour class
+        if hit > armour:
+            damage = random.randint(1,strength)
+            target.hp -= damage
+            #run hurt animation
+            target.hurt()
+        #check death
+        if target.hp < 1:
+            target.hp = 0
+            target.alive = False
+            target.death()
+        #attack text
+        damage_text= DamageText(target.rect.centerx, target.rect.y, str(hit), white)
+        damage_text_group.add(damage_text)
+        if hit > armour:
+            #damage text
+            damage_text = DamageText(target.rect.centerx, target.rect.y-50, str(damage), red)
+            damage_text_group.add(damage_text)
+        else:#Blocked text
+            damage_text = DamageText(target.rect.centerx, target.rect.y-100, str("Blocked"),white)
+            damage_text_group.add(damage_text)
+        #attack animation
+        self.action = 1
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+    
+    def hurt(self):
+        self.action = 2
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+    def death(self):
+        self.action = 3
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+    
+    def add_potions(self):
+        self.potions += 2
+
+class HealthBar():
+    def __init__(self, x, y, hp, max_hp):
+        self.x = x
+        self.y = y
+        self.hp = hp
+        self.max_hp = max_hp
+
+    def draw(self, hp):
+        #update with new health
+        self.hp = hp
+        #calculate health
+        ratio = self.hp / self.max_hp
+        pygame.draw.rect(screen, red, (self.x, self.y, 300, 35))
+        pygame.draw.rect(screen, green, (self.x, self.y, 300 * ratio, 35))
+        
+class DamageText(pygame.sprite.Sprite):
+    def __init__(self,x,y,damage,colour):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = font.render(damage, True, colour)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+        self.counter = 0
+    
+    def update(self):
+        #float away
+        self.rect.y -= 1
+        #deletes text
+        self.counter += 1
+        if self.counter > 60:
+            self.kill()
+damage_text_group = pygame.sprite.Group()
 
 def play():
     #define game variables
@@ -39,12 +197,6 @@ def play():
     clicked = False
     game_over = 0
     totalXP = 0
-
-    #define fonts
-    font = pygame.font.SysFont("Times new Roman", 26)
-    #define colours
-    red = (255,0,0)
-    green = (0,255,0)
 
     #load images
     img = pygame.image.load("img/Background/background.png").convert_alpha()
@@ -74,174 +226,20 @@ def play():
         screen.blit(panel_img, (0,screen_H - bottom_panel))
         #show Character stats
         draw_text(f"{knight.name} HP: {knight.hp}", font, green, 100, screen_H - bottom_panel + 10)
-        for count, i in enumerate(bandit_list):
+        for count, i in enumerate(current_enemies_list):
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
-        
-
-    class Character():
-        def __init__(self,x , y, name, max_hp,strength,armour,potions):
-            self.name = name
-            self.max_hp = max_hp
-            self.hp = max_hp
-            self.strength = strength
-            self.armour = armour
-            self.start_potions = potions
-            self.potions = potions
-            self.alive = True
-            self.animation_list = []
-            self.action = 0  #0:idle, 1:attack, 2:hurt, 3:death
-            self.frame_index = 0
-            self.update_time = pygame.time.get_ticks()
-        
-            #load idle images
-            temp_list = []
-            for i in range(8):
-                img = pygame.image.load(f"img/{self.name}/Idle/{i}.png")
-                img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
-                temp_list.append(img)
-            self.animation_list.append(temp_list)
-
-            #load attack images
-            temp_list = []
-            for i in range(8):
-                img = pygame.image.load(f"img/{self.name}/Attack/{i}.png")
-                img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
-                temp_list.append(img)
-            self.animation_list.append(temp_list)
-
-            #load hurt images
-            temp_list = []
-            for i in range(4):
-                img = pygame.image.load(f"img/{self.name}/Hurt/{i}.png")
-                img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
-                temp_list.append(img)
-            self.animation_list.append(temp_list)
-
-            #load death images
-            temp_list = []
-            for i in range(10):
-                img = pygame.image.load(f"img/{self.name}/Death/{i}.png")
-                img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
-                temp_list.append(img)
-            self.animation_list.append(temp_list) 
-
-            self.image = self.animation_list[self.action][self.frame_index]
-            self.rect = self.image.get_rect()
-            self.rect.center = (x, y)
-
-        def draw(self):
-            screen.blit(self.image, self.rect)
-        
-        def update(self):
-            animation_cooldown = 100
-            #handle animation
-            #update image
-            self.image = self.animation_list[self.action][self.frame_index]
-            #check if enough time has passed 
-            #   current time        - last updated   if greater than 100ms time to update to the next image    
-            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-                self.update_time = pygame.time.get_ticks()
-                self.frame_index += 1
-            #add in loop at end of images
-            if self.frame_index >= len(self.animation_list[self.action]):
-                if self.action == 3:
-                    self.frame_index = len(self.animation_list[self.action]) - 1
-                else:
-                    self.idle()
-        
-        def idle(self):
-            self.action = 0
-            self.frame_index = 0
-            self.update_time = pygame.time.get_ticks()
-        
-        def hit(self): # creates a random attack value
-            return random.randint(1, 20)
-
-        def attack(self,target):
-            #deal damage
-            strength = self.strength
-            hit = self.hit()
-            armour = target.armour
-            #checks if initial attack is greater than armour class
-            if hit > armour:
-              damage = random.randint(1,strength)
-              target.hp -= damage
-              #run hurt animation
-              target.hurt()
-            #check death
-            if target.hp < 1:
-                target.hp = 0
-                target.alive = False
-                target.death()
-            #attack text
-            damage_text= DamageText(target.rect.centerx, target.rect.y, str(hit), white)
-            damage_text_group.add(damage_text)
-            if hit > armour:
-              #damage text
-              damage_text = DamageText(target.rect.centerx, target.rect.y-50, str(damage), red)
-              damage_text_group.add(damage_text)
-            else:#Blocked text
-              damage_text = DamageText(target.rect.centerx, target.rect.y-100, str("Blocked"),white)
-              damage_text_group.add(damage_text)
-            #attack animation
-            self.action = 1
-            self.frame_index = 0
-            self.update_time = pygame.time.get_ticks()
-        
-        def hurt(self):
-            self.action = 2
-            self.frame_index = 0
-            self.update_time = pygame.time.get_ticks()
-
-        def death(self):
-            self.action = 3
-            self.frame_index = 0
-            self.update_time = pygame.time.get_ticks()
-        
-        def add_potions(self):
-            self.potions += 2
-
-    class HealthBar():
-        def __init__(self, x, y, hp, max_hp):
-            self.x = x
-            self.y = y
-            self.hp = hp
-            self.max_hp = max_hp
-
-        def draw(self, hp):
-            #update with new health
-            self.hp = hp
-            #calculate health
-            ratio = self.hp / self.max_hp
-            pygame.draw.rect(screen, red, (self.x, self.y, 300, 35))
-            pygame.draw.rect(screen, green, (self.x, self.y, 300 * ratio, 35))
-        
-    class DamageText(pygame.sprite.Sprite):
-        def __init__(self,x,y,damage,colour):
-            pygame.sprite.Sprite.__init__(self)
-            self.image = font.render(damage, True, colour)
-            self.rect = self.image.get_rect()
-            self.rect.center = (x,y)
-            self.counter = 0
-        
-        def update(self):
-            #float away
-            self.rect.y -= 1
-            #deletes text
-            self.counter += 1
-            if self.counter > 60:
-                self.kill()
-
-    damage_text_group = pygame.sprite.Group()
+    
 
     knight = Character(250, 390,"Knight", 50, 10, 12, 5)
     bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0)
     bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0)
     boss = Character(1100, 400, "Boss",40, 15,12, 0)
 
-    bandit_list = []
-    bandit_list.append(bandit1)
-    bandit_list.append(bandit2)
+    current_enemies_list = []
+    current_enemies_list.append(bandit1)
+    current_enemies_list.append(bandit2)
+    current_enemies_list.append(boss)
+
 
     knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
     bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
@@ -259,49 +257,46 @@ def play():
         clock.tick(fps)
         draw_bg()
         draw_panel()
-        def draw_panel_level():
-          knight_HB.draw(knight.hp)# draws the knights health bar
-          panel_level = random.randint(1,14)
-          if panel_level in range(1, 6):# will set the panel to 2 bandits
+        knight_HB.draw(knight.hp)# draws the knights health bar
+        panel_level = random.randint(1,14)
+        if panel_level in range(1, 6):# will set the panel to 2 bandits
             bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
             bandit2_HB.draw(bandit2.hp)
-          elif panel_level in range(6, 9):# will set the panel to a bandit
+        elif panel_level in range(6, 9):# will set the panel to a bandit
             bandit1_HB.draw(bandit1.hp)
-          elif panel_level in range(9, 11):# will set the panel to a Boss
+        elif panel_level in range(9, 11):# will set the panel to a Boss
             boss_HB.draw(boss.hp)# draws the Boss health bar
-          elif panel_level == 11:# will set the panel to a bandit and a Boss
+        elif panel_level == 11:# will set the panel to a bandit and a Boss
             boss_HB.draw(boss.hp)
             bandit1_HB.draw(bandit1.hp)
-          elif panel_level in range(12, 15):# will give the knight 2 potions
+        elif panel_level in range(12, 15):# will give the knight 2 potions
             pass
-          elif bandit1.alive or bandit2.alive or boss.alive == False:# will remove the health bar when they are dead
+        elif bandit1.alive or bandit2.alive or boss.alive == False:# will remove the health bar when they are dead
             pass
-        draw_panel_level()
-            
-        def CharacterDraw():
-          knight.update()
-          knight.draw()
-          level = random.randint(1,14)
-          if level in range(1, 6):# will draw 2 bandits
-            for bandit in bandit_list:
-              bandit.update()
-              bandit.draw()
-          elif level in range(6, 9):# will draw one bandit
+
+        knight.update()
+        knight.draw()
+
+        level = random.randint(1,14)
+        if level in range(1, 6):# will draw 2 bandits
+            for enemy in current_enemies_list:
+                enemy.update()
+                enemy.draw()
+        elif level in range(6, 9):# will draw one bandit
             bandit1.update()
             bandit1.draw()
-          elif level in range(9, 11):# will draw a boss
+        elif level in range(9, 11):# will draw a boss
             boss.update()
             boss.draw()
-          elif level == 11:# will draw Boss and bandit
+        elif level == 11:# will draw Boss and bandit
             boss.update()
             boss.draw()
             bandit1.update()
             bandit1.draw()
-          elif level in range(12, 15):# will give the knight 2 potions
+        elif level in range(12, 15):# will give the knight 2 potions
             knight.add_potions()
             draw_text(("+2 Potions"), font, green, 900, 400)
-        CharacterDraw()
-          
+    
         #draw damage text
         damage_text_group.update()
         damage_text_group.draw(screen)
@@ -314,15 +309,15 @@ def play():
         #makes mouse visible
         pygame.mouse.set_visible(True)
         pos = pygame.mouse.get_pos()
-        for count, bandit in enumerate(bandit_list):
-            if bandit.rect.collidepoint(pos):
+        for count, enemy in enumerate(current_enemies_list):
+            if enemy.rect.collidepoint(pos):
                 #hide mouse
                 pygame.mouse.set_visible(False)
                 #show sword in place of mouse
                 screen.blit(sword_img, pos)
-                if clicked == True and bandit.alive == True:
+                if clicked == True and enemy.alive == True:
                     attack = True
-                    target = bandit_list[count]
+                    target = current_enemies_list[count]
                 elif clicked == True and boss.alive == True:
                     attack = True
                     target = boss
@@ -365,14 +360,14 @@ def play():
                 game_over = -1
 
             #enemy action
-            for count, bandit in enumerate(bandit_list):
+            for count, enemy in enumerate(current_enemies_list):
                 if current_fighter == 2 + count:
-                    if bandit.alive:
+                    if enemy.alive:
                         action_cooldown += 1
                         if action_cooldown >= action_wait_time:
                         #look for player action
                         #attack
-                            bandit.attack(knight)
+                            enemy.attack(knight)
                             current_fighter += 1
                             action_cooldown = 0
                     else:
@@ -395,8 +390,8 @@ def play():
         #check if enemies are dead
         alive_bandits = 0
         alive_boss = 0
-        for bandit in bandit_list:
-            if bandit.alive == True:
+        for enemy in current_enemies_list:
+            if enemy.alive == True:
                 alive_bandits += 1
             if alive_bandits == 0:
                 pass
