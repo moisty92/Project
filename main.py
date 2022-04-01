@@ -1,3 +1,4 @@
+from ast import Delete
 import pygame
 import random
 import sys
@@ -84,7 +85,6 @@ def play():
             self.max_hp = max_hp
             self.hp = max_hp
             self.strength = strength
-            self.hit = random.randint(1,20)
             self.armour = armour
             self.start_potions = potions
             self.potions = potions
@@ -154,11 +154,14 @@ def play():
             self.action = 0
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
+        
+        def hit(self): # creates a random attack value
+            return random.randint(1, 20)
 
         def attack(self,target):
             #deal damage
-            strength = self.strength 
-            hit = self.hit
+            strength = self.strength
+            hit = self.hit()
             armour = self.armour
             #checks if initial attack is greater than armour class
             if hit > armour:
@@ -179,7 +182,7 @@ def play():
               damage_text = DamageText(target.rect.centerx, target.rect.y, str(damage), red)
               damage_text_group.add(damage_text)
             else:#Blocked text
-              damage_text = DamageText(target.rect.centerx, target.rect.y, str("Blocked"),white)
+              damage_text = DamageText(target.rect.centerx, target.rect.y-100, str("Blocked"),white)
               damage_text_group.add(damage_text)
             #attack animation
             self.action = 1
@@ -210,7 +213,7 @@ def play():
             ratio = self.hp / self.max_hp
             pygame.draw.rect(screen, red, (self.x, self.y, 300, 35))
             pygame.draw.rect(screen, green, (self.x, self.y, 300 * ratio, 35))
-
+        
     class DamageText(pygame.sprite.Sprite):
         def __init__(self,x,y,damage,colour):
             pygame.sprite.Sprite.__init__(self)
@@ -230,8 +233,8 @@ def play():
     damage_text_group = pygame.sprite.Group()
 
     knight = Character(250, 390,"Knight", 50, 10, 12, 5)
-    bandit1 = Character(900, 400, "Bandit",20, 4, 8, 0)
-    bandit2 = Character(1100, 400, "Bandit",20, 4, 8, 0)
+    bandit1 = Character(900, 400, "Bandit",20, 0, 0, 0)
+    bandit2 = Character(1100, 400, "Bandit",20, 0, 0, 0)
     wizard = Character(1100, 400, "Wizard",40, 15,12, 0)
 
     bandit_list = []
@@ -247,7 +250,6 @@ def play():
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
     quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
-
 
     run = True
     while run:
@@ -270,10 +272,8 @@ def play():
             bandit1_HB.draw(bandit1.hp)
           if panel_level == 12 or 13 or 14:# will give the knight 2 potions
             pass
-          if bandit1.alive or bandit2.alive or wizard.alive == False:
-            bandit1_HB.kill()# will remove the health bar when they are dead
-            bandit2_HB.kill()
-            wizard_HB.kill()
+          if bandit1.alive or bandit2.alive or wizard.alive == False:# will remove the health bar when they are dead
+            pass
         draw_panel_level()
             
         def characterDraw(potions):
@@ -347,19 +347,18 @@ def play():
                             current_fighter += 1
                             action_cooldown = 0 
                         #potion
-                        if potion == True:
-                            if knight.potions > 0:
-                                #check if potion heal beyond max hp
-                                if knight.max_hp - knight.hp > potion_effect:
-                                    heal_amount = potion_effect
-                                else:
-                                    heal_amount = knight.max_hp - knight.hp
-                                knight.hp += heal_amount
-                                knight.potions -= 1
-                                damage_text = DamageText(knight.rect.centerx, knight.rect.y, str(heal_amount), green)
-                                damage_text_group.add(damage_text)                        
-                                current_fighter += 1
-                                action_cooldown = 0
+                    if potion == True:
+                        if knight.potions > 0:
+                            #check if potion heal beyond max hp
+                            if knight.max_hp - knight.hp > potion_effect:
+                                heal_amount = potion_effect
+                            else:
+                                heal_amount = knight.max_hp - knight.hp
+                            knight.hp += heal_amount
+                            knight.potions -= 1
+                            damage_text = DamageText(knight.rect.centerx, knight.rect.y, str(heal_amount), green)
+                            damage_text_group.add(damage_text)                        
+                    
             else:
                 game_over = -1
 
