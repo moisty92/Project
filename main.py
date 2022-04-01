@@ -79,12 +79,12 @@ def play():
         
 
     class Character():
-        def __init__(self,x , y, name, max_hp,strength,armour, potions):
+        def __init__(self,x , y, name, max_hp,strength,armour,potions):
             self.name = name
             self.max_hp = max_hp
             self.hp = max_hp
             self.strength = strength
-            self.attack = random.randint(1,20)
+            self.hit = random.randint(1,20)
             self.armour = armour
             self.start_potions = potions
             self.potions = potions
@@ -158,10 +158,10 @@ def play():
         def attack(self,target):
             #deal damage
             strength = self.strength 
-            attack = self.attack
+            hit = self.hit
             armour = self.armour
             #checks if initial attack is greater than armour class
-            if attack > armour:
+            if hit > armour:
               damage = random.randint(1,strength)
               target.hp -= damage
               #run hurt animation
@@ -172,9 +172,9 @@ def play():
                 target.alive = False
                 target.death()
             #attack text
-            damage_text= DamageText(target.rect.centerx, target.rect.y, str(attack), white)
+            damage_text= DamageText(target.rect.centerx, target.rect.y, str(hit), white)
             damage_text_group.add(damage_text)
-            if attack > armour:
+            if hit > armour:
               #damage text
               damage_text = DamageText(target.rect.centerx, target.rect.y, str(damage), red)
               damage_text_group.add(damage_text)
@@ -270,10 +270,10 @@ def play():
             bandit1_HB.draw(bandit1.hp)
           if panel_level == 12 or 13 or 14:# will give the knight 2 potions
             pass
-          #if bandit1.alive or bandit2.alive or wizard.alive == False:
-            #bandit1_HB.kill()# will remove the health bar when they are dead
-            #bandit2_HB.kill()
-            #wizard_HB.kill()
+          if bandit1.alive or bandit2.alive or wizard.alive == False:
+            bandit1_HB.kill()# will remove the health bar when they are dead
+            bandit2_HB.kill()
+            wizard_HB.kill()
         draw_panel_level()
             
         def characterDraw(potions):
@@ -321,6 +321,9 @@ def play():
                 if clicked == True and bandit.alive == True:
                     attack = True
                     target = bandit_list[count]
+                elif clicked == True and wizard.alive == True:
+                    attack = True
+                    target = wizard
 
         #button potions
         if potions_button.draw():
