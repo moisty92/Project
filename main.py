@@ -1,21 +1,20 @@
 import pygame
-import MainMenuButton
-import button
 import random
 import sys
 
 pygame.init()
 
-#creates the variables for the game window
+#creates the variables for the game# window
 clock = pygame.time.Clock()
 fps = 60
 bottom_panel = 180
 screen_W = 1280
 screen_H = 550 + bottom_panel
 screen = pygame.display.set_mode((screen_W, screen_H))
-pygame.display.set_caption('Planet Gorgon')
+pygame.display.set_caption("Planet Gorgon")
 white = (255,255,255)
 black = (0,0,0)
+green = (0,0,255)
 
 #loads grey boxes for main menu
 play_img = pygame.image.load("img/Icons/Play Rect.png")
@@ -39,6 +38,7 @@ def play():
     potion_effect = 20 
     clicked = False
     game_over = 0
+    totalXP = 0
 
     #define fonts
     font = pygame.font.SysFont("Times new Roman", 26)
@@ -78,13 +78,14 @@ def play():
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
         
 
-
     class Character():
-        def __init__(self,x , y, name, max_hp,strength, potions):
+        def __init__(self,x , y, name, max_hp,strength,armour, potions):
             self.name = name
             self.max_hp = max_hp
             self.hp = max_hp
             self.strength = strength
+            self.attack = random.randint(1,20)
+            self.armour = armour
             self.start_potions = potions
             self.potions = potions
             self.alive = True
@@ -92,7 +93,7 @@ def play():
             self.action = 0  #0:idle, 1:attack, 2:hurt, 3:death
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
-
+        
             #load idle images
             temp_list = []
             for i in range(8):
@@ -111,7 +112,7 @@ def play():
 
             #load hurt images
             temp_list = []
-            for i in range(3):
+            for i in range(4):
                 img = pygame.image.load(f"img/{self.name}/Hurt/{i}.png")
                 img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
                 temp_list.append(img)
@@ -123,7 +124,7 @@ def play():
                 img = pygame.image.load(f"img/{self.name}/Death/{i}.png")
                 img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
                 temp_list.append(img)
-            self.animation_list.append(temp_list)  
+            self.animation_list.append(temp_list) 
 
             self.image = self.animation_list[self.action][self.frame_index]
             self.rect = self.image.get_rect()
@@ -157,18 +158,29 @@ def play():
         def attack(self,target):
             #deal damage
             strength = self.strength 
-            damage = random.randint(1,strength)
-            target.hp -= damage
-            #run hurt animation
-            target.hurt()
+            attack = self.attack
+            armour = self.armour
+            #checks if initial attack is greater than armour class
+            if attack > armour:
+              damage = random.randint(1,strength)
+              target.hp -= damage
+              #run hurt animation
+              target.hurt()
             #check death
             if target.hp < 1:
                 target.hp = 0
                 target.alive = False
                 target.death()
-            #damage text
-            damage_text = DamageText(target.rect.centerx, target.rect.y, str(damage), red)
+            #attack text
+            damage_text= DamageText(target.rect.centerx, target.rect.y, str(attack), white)
             damage_text_group.add(damage_text)
+            if attack > armour:
+              #damage text
+              damage_text = DamageText(target.rect.centerx, target.rect.y, str(damage), red)
+              damage_text_group.add(damage_text)
+            else:#Blocked text
+              damage_text = DamageText(target.rect.centerx, target.rect.y, str("Blocked"),white)
+              damage_text_group.add(damage_text)
             #attack animation
             self.action = 1
             self.frame_index = 0
@@ -217,9 +229,10 @@ def play():
 
     damage_text_group = pygame.sprite.Group()
 
-    knight = Character(250, 390,"Knight", 50, 10, 5)
-    bandit1 = Character(900, 400, "Bandit",20, 4, 0)
-    bandit2 = Character(1100, 400, "Bandit",20, 4, 0)
+    knight = Character(250, 390,"Knight", 50, 10, 12, 5)
+    bandit1 = Character(900, 400, "Bandit",20, 4, 8, 0)
+    bandit2 = Character(1100, 400, "Bandit",20, 4, 8, 0)
+    wizard = Character(1100, 400, "Wizard",40, 15,12, 0)
 
     bandit_list = []
     bandit_list.append(bandit1)
@@ -228,11 +241,12 @@ def play():
     knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
     bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
     bandit2_HB = HealthBar(750, screen_H - bottom_panel + 120, bandit2.hp, bandit2.max_hp)
+    wizard_HB = HealthBar(750, screen_H - bottom_panel + 120, wizard.hp, wizard.max_hp)
 
     #create buttons
-    potions_button = button.Button(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
-    restart_button = button.Button(screen, 550, 160, restart_img, 180, 40)
-    quit_button = button.Button(screen, 0,0, quitgame_img, 64, 64)
+    potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
+    restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
+    quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
 
 
     run = True
@@ -241,16 +255,49 @@ def play():
         clock.tick(fps)
         draw_bg()
         draw_panel()
-        knight_HB.draw(knight.hp)
-        bandit1_HB.draw(bandit1.hp)
-        bandit2_HB.draw(bandit2.hp)
-
-        knight.update()
-        knight.draw()
-        for bandit in bandit_list:
-            bandit.update()
-            bandit.draw()
-
+        def draw_panel_level():
+          knight_HB.draw(knight.hp)# draws the knights health bar
+          panel_level = random.randint(1,14)
+          if panel_level == 1 or 2 or 3 or 4 or 5:# will set the panel to 2 bandits
+            bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
+            bandit2_HB.draw(bandit2.hp)
+          if panel_level == 6 or 7 or 8:# will set the panel to a bandit
+            bandit1_HB.draw(bandit1.hp)
+          if panel_level == 9 or 10:# will set the panel to a wizard
+            wizard_HB.draw(wizard.hp)# draws the wizard health bar
+          if panel_level == 11:# will set the panel to a bandit and a wizard
+            wizard_HB.draw(wizard.hp)
+            bandit1_HB.draw(bandit1.hp)
+          if panel_level == 12 or 13 or 14:# will give the knight 2 potions
+            pass
+          if bandit1.alive or bandit2.alive or wizard.alive == False:
+            bandit1_HB.kill()# will remove the health bar when they are dead
+            bandit2_HB.kill()
+            wizard_HB.kill()
+            
+        def characterDraw():
+          knight.update()
+          knight.draw()
+          level = random.randint(1,14)
+          if level == 1 or 2 or 3 or 4 or 5:# will draw 2 bandits
+            for bandit in bandit_list:
+              bandit.update()
+              bandit.draw()
+          if level == 6 or 7 or 8:# will draw one bandit
+            bandit1.update()
+            bandit1.draw()
+          if level == 9 or 10:# will draw a wizard
+            wizard.update()
+            wizard.draw()
+          if level == 11:# will draw wizard and bandit
+            wizard.update()
+            wizard.draw()
+            bandit1.update()
+            bandit1.draw()
+          if level == 12 or 13 or 14:# will give the knight 2 potions
+            potion += 2
+            draw_text(("+2 Potions"), font, green, 900, 400)
+          
         #draw damage text
         damage_text_group.update()
         damage_text_group.draw(screen)
@@ -260,7 +307,7 @@ def play():
         attack = False
         potion = False
         target = None
-        #makes visible
+        #makes mouse visible
         pygame.mouse.set_visible(True)
         pos = pygame.mouse.get_pos()
         for count, bandit in enumerate(bandit_list):
@@ -324,19 +371,41 @@ def play():
                             action_cooldown = 0
                     else:
                         current_fighter += 1 
+                    if wizard.alive:
+                        action_cooldown += 1
+                        if action_cooldown >= action_wait_time:
+                        #look for player action
+                        #attack
+                            wizard.attack(knight)
+                            current_fighter += 1
+                            action_cooldown = 0
+                    else:
+                        current_fighter += 1 
 
             #reset after turn
             if current_fighter > total_fighters:
                 current_fighter = 1
 
-        #check if bandits are dead
+        #check if enemies are dead
         alive_bandits = 0
+        alive_wizard = 0
         for bandit in bandit_list:
             if bandit.alive == True:
                 alive_bandits += 1
             if alive_bandits == 0:
                 pass
-
+        if wizard.alive == True:
+            alive_wizard +=1
+        if alive_wizard == 0:
+            pass
+        #gives XP bases on enemie death
+        if alive_wizard == 1:
+            totalXP += 15
+        if alive_bandits == 1:
+          totalXP += 5
+        elif  alive_bandits == 2:
+          totalXP += 5
+          
         #check if game is over
         if game_over != 0:
             screen.blit(defeat_img, (460, 40))
@@ -356,6 +425,70 @@ def play():
     pygame.quit()
     sys.exit()
 
+
+#Game button class
+class GameButton():
+    def __init__(self, surface, x, y, image, size_x, size_y):
+        self.image = pygame.transform.scale(image, (size_x, size_y))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
+        self.surface = surface
+
+    def draw(self):
+        action = False
+
+        #get mouse position
+        pos = pygame.mouse.get_pos()
+
+        #check mouseover and clicked conditions
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                action = True
+                self.clicked = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        #draw button
+        self.surface.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
+
+# Main menu button class
+class MainMenuButton():
+	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
+		self.image = image
+		self.x_pos = pos[0]
+		self.y_pos = pos[1]
+		self.font = font
+		self.base_color, self.hovering_color = base_color, hovering_color
+		self.text_input = text_input
+		self.text = self.font.render(self.text_input, True, self.base_color)
+		if self.image is None:
+			self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
+    
+  #draw button
+	def update(self, screen):
+		if self.image is not None:
+			screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
+    
+  #checks for click for on button position
+	def checkForInput(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			return True
+		return False
+    
+  #changes colour on button highlight
+	def changeColour(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = self.font.render(self.text_input, True, self.hovering_color)
+		else:
+			self.text = self.font.render(self.text_input, True, self.base_color)
+      
 def LB():
     while True:
         screen.fill(black)
@@ -365,7 +498,7 @@ def LB():
         LB_rect = LB_text.get_rect(center=(640, 50))
         screen.blit(LB_text,LB_rect)
 
-        LB_back = MainMenuButton.Button(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
+        LB_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
 
         LB_back.changeColor(LB_mouse_pos)
         LB_back.update(screen)
@@ -389,7 +522,7 @@ def options():
         options_rect = options_text.get_rect(center=(640, 50))
         screen.blit(options_text, options_rect,)
 
-        options_back = MainMenuButton.Button(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
+        options_back = MainMenuButton(image=None, pos=(1160, 660), text_input="BACK", font=get_font(50), base_color=white, hovering_color="Green")
 
         options_back.changeColor(options_mouse_pos)
         options_back.update(screen)
@@ -413,15 +546,15 @@ def main_menu():
         menu_text = get_font(75).render("PLANET GORGON", True, white)
         menu_rect = menu_text.get_rect(center=(640, 50))
 
-        play_button = MainMenuButton.Button(play_img, pos=(640, 150),text_input="PLAY", font=get_font(35), base_color=white, hovering_color="Green")
-        options_button = MainMenuButton.Button(options_img, pos=(640, 300), text_input="OPTIONS", font=get_font(35), base_color=white, hovering_color="Green")
-        LB_button = MainMenuButton.Button(LB_img, pos=(640, 450), text_input="LEADERBOARD", font=get_font(35), base_color=white, hovering_color="Green")
-        quit_botton = MainMenuButton.Button(quit_img, pos=(640, 600),  text_input="QUIT", font=get_font(35), base_color=white, hovering_color="Green")
+        play_button = MainMenuButton(play_img, pos=(640, 150),text_input="PLAY", font=get_font(35), base_color=white, hovering_color="Green")
+        options_button = MainMenuButton(options_img, pos=(640, 300), text_input="OPTIONS", font=get_font(35), base_color=white, hovering_color="Green")
+        LB_button = MainMenuButton(LB_img, pos=(640, 450), text_input="LEADERBOARD", font=get_font(35), base_color=white, hovering_color="Green")
+        quit_botton = MainMenuButton(quit_img, pos=(640, 600),  text_input="QUIT", font=get_font(35), base_color=white, hovering_color="Green")
 
         screen.blit(menu_text, menu_rect)
 
         for button in [play_button, options_button,LB_button, quit_botton]:
-            button.changeColor(menu_pos)
+            button.changeColour(menu_pos)
             button.update(screen)
         
         for event in pygame.event.get():
