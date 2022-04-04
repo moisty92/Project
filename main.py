@@ -280,25 +280,35 @@ def play():
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
     
     knight = Character(250, 390,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
-    bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
-    bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 20)
-
     current_enemies_list = []
-    current_enemies_list.append(bandit1)
-    current_enemies_list.append(bandit2)
-     
-    def boss():
-        boss = Character(1100, 300, "Boss",40, 15,12, 0,750, screen_H - bottom_panel + 50, 40)
-        boss.draw()
-        boss.update()
+
+    def spawn_level1():
+        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
+        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 20)
+        current_enemies_list.append(bandit1)
+        current_enemies_list.append(bandit2)
+
+    def spawn_level2():
+        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
+        current_enemies_list.append(bandit1)
+
+    def spawn_level3():
+        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
+        boss = Character(1100, 300, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 20)
+        current_enemies_list.append(bandit1)
         current_enemies_list.append(boss)
+
+    def spawn_level4():
+        boss = Character(1100, 300, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 20)
+        current_enemies_list.append(boss)
+
     
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
     quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
 
-    game_level = random.randint(1,5)
+    game_level = random.randint(1,17)
 
     run = True
     while run:
@@ -308,23 +318,20 @@ def play():
         draw_panel()
         knight.draw()
         knight.update()
-
-        if game_level == 1:
-            bandit1.draw()
-            bandit2.draw()
-            bandit1.update()
-            bandit2.update()
-        elif game_level == 2:
-            bandit1.draw()
-            bandit1.update()
-        elif game_level == 3:
-            boss()
-        elif game_level == 4:
-            boss()
-            bandit1.draw()
-            bandit1.update()
-        elif game_level == 5:
-            knight.potions += 2
+        if not current_enemies_list:
+            if game_level in range(1,6):
+                spawn_level1()
+            elif game_level in range(7,9):
+                spawn_level2()
+            elif game_level in range(9,11):
+                spawn_level3()             
+            elif game_level in range(11,14):
+                spawn_level4()
+            elif game_level in range(14,17):
+                knight.potions += 2
+        for enemy in current_enemies_list:
+            enemy.draw()
+            enemy.update()
     
         #draw damage text
         damage_text_group.update()
