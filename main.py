@@ -89,6 +89,8 @@ class Character():
         ratio = self.hp / self.max_hp
         pygame.draw.rect(screen, red, (self.xHB, self.yHB, 300, 35))
         pygame.draw.rect(screen, green, (self.xHB, self.yHB, 300 * ratio, 35))
+        if self.alive == False:
+            self.kill()
     
     def update(self):
         animation_cooldown = 100
@@ -106,6 +108,8 @@ class Character():
                 self.frame_index = len(self.animation_list[self.action]) - 1
             else:
                 self.idle()
+        if self.alive == False:
+            self.kill()
     
     def idle(self):
         self.action = 0
@@ -321,14 +325,19 @@ def play():
         if not current_enemies_list:
             if game_level in range(1,6):
                 spawn_level1()
+                game_level = random.randint(1,17)
             elif game_level in range(7,9):
                 spawn_level2()
+                game_level = random.randint(1,17)
             elif game_level in range(9,11):
-                spawn_level3()             
+                spawn_level3()
+                game_level = random.randint(1,17)             
             elif game_level in range(11,14):
                 spawn_level4()
+                game_level = random.randint(1,17)
             elif game_level in range(14,17):
                 knight.potions += 2
+                game_level = random.randint(1,17)
         for enemy in current_enemies_list:
             enemy.draw()
             enemy.update()
