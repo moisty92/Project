@@ -148,9 +148,6 @@ class Character():
         self.action = 3
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
-    
-    def add_potions(self):
-        self.potions += 2
 
 class HealthBar():
     def __init__(self, x, y, hp, max_hp):
@@ -293,22 +290,29 @@ def play():
     knight = Character(250, 390,"Knight", 50, 10, 12, 5)
     bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0)
     bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0)
-    boss = Character(1100, 400, "Boss",40, 15,12, 0)
 
     current_enemies_list = []
     current_enemies_list.append(bandit1)
     current_enemies_list.append(bandit2)
-    current_enemies_list.append(boss)
+     
+    def boss():
+        boss = Character(1100, 300, "Boss",40, 15,12, 0)
+        boss_HB = HealthBar(750, screen_H - bottom_panel + 120, boss.hp, boss.max_hp)
+        boss.draw()
+        boss.update()
+        boss_HB.draw
+        current_enemies_list.append(boss)
 
     knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
     bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
     bandit2_HB = HealthBar(750, screen_H - bottom_panel + 120, bandit2.hp, bandit2.max_hp)
-    boss_HB = HealthBar(750, screen_H - bottom_panel + 120, boss.hp, boss.max_hp)
-
+    
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
     quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
+
+    game_level = random.randint(1,5)
 
     run = True
     while run:
@@ -316,51 +320,30 @@ def play():
         clock.tick(fps)
         draw_bg()
         draw_panel()
-        knight_HB.draw(knight.hp)# draws the knights health bar
-        bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
-        bandit2_HB.draw(bandit2.hp)
-        
-        panel_level = random.randint(1,14)
-        if panel_level in range(1, 6):# will set the panel to 2 bandits
-            bandit1_HB.draw(bandit1.hp)# draws the bandits health bar
-            bandit2_HB.draw(bandit2.hp)
-        elif panel_level in range(6, 9):# will set the panel to a bandit
-            bandit1_HB.draw(bandit1.hp)
-        elif panel_level in range(9, 11):# will set the panel to a Boss
-            boss_HB.draw(boss.hp)# draws the Boss health bar
-        elif panel_level == 11:# will set the panel to a bandit and a Boss
-            boss_HB.draw(boss.hp)
-            bandit1_HB.draw(bandit1.hp)
-        elif panel_level in range(12, 15):# will give the knight 2 potions
-            pass
-        elif bandit1.alive or bandit2.alive or boss.alive == False:# will remove the health bar when they are dead
-            pass
-
-        knight.update()
         knight.draw()
-        for enemy in current_enemies_list:
-                enemy.update()
-                enemy.draw()
-        
-        level = random.randint(1,14)
-        if level in range(1, 6):# will draw 2 bandits
-            for enemy in current_enemies_list:
-                enemy.update()
-                enemy.draw()
-        elif level in range(6, 9):# will draw one bandit
-            bandit1.update()
+        knight.update()
+        knight_HB.draw(knight.hp)
+
+        if game_level == 1:
             bandit1.draw()
-        elif level in range(9, 11):# will draw a boss
-            boss.update()
-            boss.draw()
-        elif level == 11:# will draw Boss and bandit
-            boss.update()
-            boss.draw()
+            bandit2.draw()
             bandit1.update()
+            bandit2.update()
+            bandit1_HB.draw(bandit1.hp)
+            bandit2_HB.draw(bandit2.hp)
+        elif game_level == 2:
             bandit1.draw()
-        elif level in range(12, 15):# will give the knight 2 potions
-            knight.add_potions()
-            draw_text(("+2 Potions"), font, green, 900, 400)
+            bandit1.update()
+            bandit1_HB.draw(bandit1.hp)
+        elif game_level == 3:
+            boss()
+        elif game_level == 4:
+            boss()
+            bandit1.draw()
+            bandit1.update()
+            bandit1_HB.draw(bandit1.hp)
+        elif game_level == 5:
+            knight.potions += 2
     
         #draw damage text
         damage_text_group.update()
@@ -383,9 +366,7 @@ def play():
                 if clicked == True and enemy.alive == True:
                     attack = True
                     target = current_enemies_list[count]
-                elif clicked == True and boss.alive == True:
-                    attack = True
-                    target = boss
+                
 
         #button potions
         if potions_button.draw():
@@ -437,36 +418,25 @@ def play():
                             action_cooldown = 0
                     else:
                         current_fighter += 1 
-                    if boss.alive:
-                        action_cooldown += 1
-                        if action_cooldown >= action_wait_time:
-                        #look for player action
-                        #attack
-                            boss.attack(knight)
-                            current_fighter += 1
-                            action_cooldown = 0
-                    else:
-                        current_fighter += 1 
-
+                    
             #reset after turn
             if current_fighter > total_fighters:
                 current_fighter = 1
 
+            n = len(current_enemies_list) - 1
+            while n >= 0:
+                if not current_enemies_list[n].alive:
+                    current_enemies_list.pop(n)
+                n -= 1
+
         #check if enemies are dead
         alive_bandits = 0
-        alive_boss = 0
+        
         for enemy in current_enemies_list:
             if enemy.alive == True:
                 alive_bandits += 1
             if alive_bandits == 0:
                 pass
-        if boss.alive == True:
-            alive_boss +=1
-        if alive_boss == 0:
-            pass
-        #gives XP bases on enemie death
-        if alive_boss == 1:
-            totalXP += 15
         if alive_bandits == 1:
           totalXP += 5 
         elif  alive_bandits == 2:
