@@ -30,10 +30,10 @@ def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.SysFont("Times new Roman", size)
 
 class Character():
-    def __init__(self,x , y, name, max_hp,strength,armour,potions):
+    def __init__(self,x , y, name, max_hp,strength,armour,potions,xHB,yHB, hp,):
         self.name = name
         self.max_hp = max_hp
-        self.hp = max_hp
+        self.hp = hp
         self.strength = strength
         self.armour = armour
         self.start_potions = potions
@@ -42,8 +42,10 @@ class Character():
         self.animation_list = []
         self.action = 0  #0:idle, 1:attack, 2:hurt, 3:death
         self.frame_index = 0
+        self.xHB = xHB
+        self.yHB = yHB
         self.update_time = pygame.time.get_ticks()
-    
+        
         #load idle images
         temp_list = []
         for i in range(8):
@@ -82,6 +84,11 @@ class Character():
 
     def draw(self):
         screen.blit(self.image, self.rect)
+        #update with new health
+        #calculate health
+        ratio = self.hp / self.max_hp
+        pygame.draw.rect(screen, red, (self.xHB, self.yHB, 300, 35))
+        pygame.draw.rect(screen, green, (self.xHB, self.yHB, 300 * ratio, 35))
     
     def update(self):
         animation_cooldown = 100
@@ -147,22 +154,7 @@ class Character():
     def death(self):
         self.action = 3
         self.frame_index = 0
-        self.update_time = pygame.time.get_ticks()
-
-class HealthBar():
-    def __init__(self, x, y, hp, max_hp):
-        self.x = x
-        self.y = y
-        self.hp = hp
-        self.max_hp = max_hp
-
-    def draw(self, hp):
-        #update with new health
-        self.hp = hp
-        #calculate health
-        ratio = self.hp / self.max_hp
-        pygame.draw.rect(screen, red, (self.x, self.y, 300, 35))
-        pygame.draw.rect(screen, green, (self.x, self.y, 300 * ratio, 35))
+        self.update_time = pygame.time.get_ticks()    
         
 class DamageText(pygame.sprite.Sprite):
     def __init__(self,x,y,damage,colour):
@@ -287,25 +279,19 @@ def play():
         for count, i in enumerate(current_enemies_list):
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
     
-    knight = Character(250, 390,"Knight", 50, 10, 12, 5)
-    bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0)
-    bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0)
+    knight = Character(250, 390,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
+    bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
+    bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 20)
 
     current_enemies_list = []
     current_enemies_list.append(bandit1)
     current_enemies_list.append(bandit2)
      
     def boss():
-        boss = Character(1100, 300, "Boss",40, 15,12, 0)
-        boss_HB = HealthBar(750, screen_H - bottom_panel + 120, boss.hp, boss.max_hp)
+        boss = Character(1100, 300, "Boss",40, 15,12, 0,750, screen_H - bottom_panel + 50, 40)
         boss.draw()
         boss.update()
-        boss_HB.draw
         current_enemies_list.append(boss)
-
-    knight_HB = HealthBar(150, screen_H - bottom_panel + 50, knight.hp, knight.max_hp)
-    bandit1_HB = HealthBar(750, screen_H - bottom_panel + 50, bandit1.hp, bandit1.max_hp)
-    bandit2_HB = HealthBar(750, screen_H - bottom_panel + 120, bandit2.hp, bandit2.max_hp)
     
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
@@ -322,26 +308,21 @@ def play():
         draw_panel()
         knight.draw()
         knight.update()
-        knight_HB.draw(knight.hp)
 
         if game_level == 1:
             bandit1.draw()
             bandit2.draw()
             bandit1.update()
             bandit2.update()
-            bandit1_HB.draw(bandit1.hp)
-            bandit2_HB.draw(bandit2.hp)
         elif game_level == 2:
             bandit1.draw()
             bandit1.update()
-            bandit1_HB.draw(bandit1.hp)
         elif game_level == 3:
             boss()
         elif game_level == 4:
             boss()
             bandit1.draw()
             bandit1.update()
-            bandit1_HB.draw(bandit1.hp)
         elif game_level == 5:
             knight.potions += 2
     
