@@ -50,7 +50,7 @@ class Character():
         temp_list = []
         for i in range(8):
             img = pygame.image.load(f"img/{self.name}/Idle/{i}.png")
-            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            img = pygame.transform.scale(img, (img.get_width() * 3, img.get_height() * 3 ))
             temp_list.append(img)
         self.animation_list.append(temp_list)
 
@@ -58,7 +58,7 @@ class Character():
         temp_list = []
         for i in range(8):
             img = pygame.image.load(f"img/{self.name}/Attack/{i}.png")
-            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            img = pygame.transform.scale(img, (img.get_width() * 3, img.get_height() * 3 ))
             temp_list.append(img)
         self.animation_list.append(temp_list)
 
@@ -66,7 +66,7 @@ class Character():
         temp_list = []
         for i in range(4):
             img = pygame.image.load(f"img/{self.name}/Hurt/{i}.png")
-            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            img = pygame.transform.scale(img, (img.get_width() * 3, img.get_height() * 3 ))
             temp_list.append(img)
         self.animation_list.append(temp_list)
 
@@ -74,13 +74,17 @@ class Character():
         temp_list = []
         for i in range(9):
             img = pygame.image.load(f"img/{self.name}/Death/{i}.png")
-            img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
+            img = pygame.transform.scale(img, (img.get_width() * 3, img.get_height() * 3 ))
             temp_list.append(img)
         self.animation_list.append(temp_list) 
 
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+    
+    #kills the character functions
+    def kill(self):
+        self.kill
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -89,8 +93,6 @@ class Character():
         ratio = self.hp / self.max_hp
         pygame.draw.rect(screen, red, (self.xHB, self.yHB, 300, 35))
         pygame.draw.rect(screen, green, (self.xHB, self.yHB, 300 * ratio, 35))
-        if self.alive == False:
-            self.kill()
     
     def update(self):
         animation_cooldown = 100
@@ -108,8 +110,6 @@ class Character():
                 self.frame_index = len(self.animation_list[self.action]) - 1
             else:
                 self.idle()
-        if self.alive == False:
-            self.kill()
     
     def idle(self):
         self.action = 0
@@ -123,6 +123,7 @@ class Character():
         #deal damage
         strength = self.strength
         hit = self.hit()
+
         armour = target.armour
         #checks if initial attack is greater than armour class
         if hit > armour:
@@ -135,6 +136,7 @@ class Character():
             target.hp = 0
             target.alive = False
             target.death()
+            
         #attack text
         damage_text= DamageText(target.rect.centerx, target.rect.y, str(hit), white)
         damage_text_group.add(damage_text)
@@ -251,7 +253,7 @@ def play():
     potion_effect = 20 
     clicked = False
     game_over = 0
-    totalXP = 0
+    score = 0
 
     #load images
     img = pygame.image.load("img/Background/background.png").convert_alpha()
@@ -282,36 +284,33 @@ def play():
         draw_text(f"{knight.name} HP: {knight.hp}", font, green, 100, screen_H - bottom_panel + 10)
         for count, i in enumerate(current_enemies_list):
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
-            if i.alive == False:
-                i.kill()
     #instaciation of the knight
-    knight = Character(250, 390,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
+    knight = Character(250, 425,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
 
     #creates an empty list for the enemies 
     current_enemies_list = []
 
     # creates different levels for the user to cycle through
     def spawn_level1():
-        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
+        bandit1 = Character(900, 425, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+        bandit2 = Character(1100, 425, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(bandit1)
         current_enemies_list.append(bandit2)
 
     def spawn_level2():
-        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+        bandit1 = Character(900, 425, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
         current_enemies_list.append(bandit1)
 
     def spawn_level3():
-        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-        boss = Character(900, 400, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
+        bandit2 = Character(1100, 425, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+        boss = Character(800, 425, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(bandit2)
         current_enemies_list.append(boss)
 
     def spawn_level4():
-        boss = Character(900, 400, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
+        boss = Character(800, 425, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(boss)
 
-    
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
@@ -327,7 +326,7 @@ def play():
         draw_panel()
         knight.draw()
         knight.update()
-        
+
         if not current_enemies_list:
             if game_level in range(1,6):
                 spawn_level1()
@@ -344,10 +343,13 @@ def play():
             elif game_level in range(14,17):
                 knight.potions += 2
                 game_level = random.randint(1,17)
+
         for enemy in current_enemies_list:
             enemy.draw()
             enemy.update()
-    
+
+        draw_text("Level: " + str(score),font,white,1150,0)
+
         #draw damage text
         damage_text_group.update()
         damage_text_group.draw(screen)
@@ -370,7 +372,6 @@ def play():
                     attack = True
                     target = current_enemies_list[count]
                 
-
         #button potions
         if potions_button.draw():
             potion = True
@@ -422,28 +423,29 @@ def play():
                     else:
                         current_fighter += 1 
                     
-            #reset after turn
-            if current_fighter > total_fighters:
-                current_fighter = 1
-
-            n = len(current_enemies_list) - 1
-            while n >= 0:
-                if not current_enemies_list[n].alive:
-                    current_enemies_list.pop(n)
-                n -= 1
 
         #check if enemies are dead
-        alive_bandits = 0
-        
+        alive_enemies = 0
         for enemy in current_enemies_list:
             if enemy.alive == True:
-                alive_bandits += 1
-            if alive_bandits == 0:
-                pass
-        if alive_bandits == 1:
-          totalXP += 5 
-        elif  alive_bandits == 2:
-          totalXP += 5
+                alive_enemies += 1
+            if alive_enemies == 0:
+                action_cooldown += 1
+                if action_cooldown >= action_wait_time:
+                    current_enemies_list = []
+                    score = score + 1
+                    draw_text("Level: " + str(score),font,white,1150,0)
+
+            
+        n = len(current_enemies_list) - 1
+        while n >= 0:
+            if not current_enemies_list[n].alive:
+                current_enemies_list.pop(n)
+            n -= 1
+        
+        #reset after turn
+        if current_fighter > total_fighters:
+            current_fighter = 1
           
         #check if game is over
         if game_over != 0:
