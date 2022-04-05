@@ -72,7 +72,7 @@ class Character():
 
         #load death images
         temp_list = []
-        for i in range(10):
+        for i in range(9):
             img = pygame.image.load(f"img/{self.name}/Death/{i}.png")
             img = pygame.transform.scale(img, (img.get_width() * 4, img.get_height() * 4 ))
             temp_list.append(img)
@@ -282,28 +282,33 @@ def play():
         draw_text(f"{knight.name} HP: {knight.hp}", font, green, 100, screen_H - bottom_panel + 10)
         for count, i in enumerate(current_enemies_list):
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
-    
+            if i.alive == False:
+                i.kill()
+    #instaciation of the knight
     knight = Character(250, 390,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
+
+    #creates an empty list for the enemies 
     current_enemies_list = []
 
+    # creates different levels for the user to cycle through
     def spawn_level1():
-        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
-        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 20)
+        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(bandit1)
         current_enemies_list.append(bandit2)
 
     def spawn_level2():
-        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
+        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
         current_enemies_list.append(bandit1)
 
     def spawn_level3():
-        bandit1 = Character(900, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 20)
-        boss = Character(1100, 300, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 20)
-        current_enemies_list.append(bandit1)
+        bandit2 = Character(1100, 400, "Bandit",20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+        boss = Character(900, 400, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
+        current_enemies_list.append(bandit2)
         current_enemies_list.append(boss)
 
     def spawn_level4():
-        boss = Character(1100, 300, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 20)
+        boss = Character(900, 400, "Boss",40, 15,12, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(boss)
 
     
@@ -322,6 +327,7 @@ def play():
         draw_panel()
         knight.draw()
         knight.update()
+        
         if not current_enemies_list:
             if game_level in range(1,6):
                 spawn_level1()
