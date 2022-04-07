@@ -301,37 +301,36 @@ def play():
     #creates an empty list for the enemies 
     current_enemies_list = []
 
+    game_level = random.randint(1,16)
+
     # creates different levels for the user to cycle through
-    def spawn_level1():
-        bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-        bandit2 = Character(1100, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
-        current_enemies_list.append(bandit1)
-        current_enemies_list.append(bandit2)
+    def random_level():
+        if not current_enemies_list:
+            if game_level in range(1,6):
+                bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+                bandit2 = Character(1100, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
+                current_enemies_list.append(bandit1)
+                current_enemies_list.append(bandit2)
+        
+            elif game_level in range(7,9):
+                bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+                current_enemies_list.append(bandit1)
+                    
+            elif game_level in range(9,11):
+                bandit2 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+                boss = Character(1150, 365, "Boss", 40, 1,0, 0, 750, screen_H - bottom_panel + 120, 2)
+                current_enemies_list.append(bandit2)
+                current_enemies_list.append(boss)
 
-    def spawn_level2():
-        bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-        current_enemies_list.append(bandit1)
-
-    def spawn_level3():
-        bandit2 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-        boss = Character(1150, 365, "Boss", 40, 1,0, 0, 750, screen_H - bottom_panel + 120, 2)
-        current_enemies_list.append(bandit2)
-        current_enemies_list.append(boss)
-
-    def spawn_level4():
-        boss = Character(1150, 365, "Boss", 40, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
-        current_enemies_list.append(boss)
-    
-    
-    
+            elif game_level in range(11,15):
+                boss = Character(1150, 365, "Boss", 40, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
+                current_enemies_list.append(boss)
     
 
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
     quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
-    
-    game_level = random.randint(1,16)
 
     run = True
     while run:
@@ -344,27 +343,12 @@ def play():
         knight.draw()
         knight.update()
 
-        if not current_enemies_list:
-            if game_level in range(1,6):
-                spawn_level1()
-
-            elif game_level in range(7,9):
-                spawn_level2()
+        random_level()
                 
-            elif game_level in range(9,11):
-                spawn_level3()
-                            
-            elif game_level in range(11,14):
-                spawn_level4()
-            elif game_level in range(14,17):
-                knight.potions += 2
-                game_over == 0
-
         for enemy in current_enemies_list:
             enemy.draw()
             enemy.update()
     
-
         #draw damage text
         damage_text_group.update()
         damage_text_group.draw(screen)
@@ -397,6 +381,8 @@ def play():
             main_menu()
 
         if game_over == 0:
+            game_level = random.randint(1,16)
+            random_level()
 		#player action
             if knight.alive == True:
                 if current_fighter == 1:
@@ -447,6 +433,7 @@ def play():
             if enemy.alive == True:
                 alive_enemies += 1
         if alive_enemies == 0:
+            score += 1
             game_over = 1
 
 
@@ -460,14 +447,16 @@ def play():
                     game_over = 0
                     main_menu()
             if game_over == 1:
-                count = 0
-                while count <= 5:
-                    count = count + 1
-                    screen.blit(victory_img, (350, 50))
-                    print(count)
-                else:
-                    game_over = 0
-                    count = 0
+                n = len(current_enemies_list) - 1
+                while n >= 0:
+                    if not current_enemies_list[n].alive:
+                        current_enemies_list.pop(n)
+                    n -= 1
+                screen.blit(victory_img, (350, 50))
+                current_fighter = 1
+                action_cooldown = 0
+                game_over = 0
+                
                 
                 
         for event in pygame.event.get():
