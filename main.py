@@ -134,7 +134,8 @@ class Character():
         if target.hp < 1:
             target.hp = 0
             target.alive = False
-            target.death()  
+            target.death()
+              
 
         #attack text
         damage_text= DamageText(target.rect.centerx, target.rect.y, str(hit), white)
@@ -321,9 +322,28 @@ def play():
         boss = Character(1150, 365, "Boss", 40, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
         current_enemies_list.append(boss)
     
-    game_level = random.randint(1,17)
+    
+    
+    
 
-    def spawn_level():
+    #create buttons
+    potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
+    restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
+    quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
+    
+    game_level = random.randint(1,16)
+
+    run = True
+    while run:
+
+        clock.tick(fps)
+        draw_bg()
+        draw_panel()
+        draw_text("Level: " + str(score),font,white,1150,0)
+
+        knight.draw()
+        knight.update()
+
         if not current_enemies_list:
             if game_level in range(1,6):
                 spawn_level1()
@@ -338,36 +358,12 @@ def play():
                 spawn_level4()
             elif game_level in range(14,17):
                 knight.potions += 2
-                spawn_level()
+                game_over == 0
 
         for enemy in current_enemies_list:
             enemy.draw()
             enemy.update()
     
-    def reset_level():
-        for enemy in current_enemies_list:
-            if enemy.alive == False:
-                enemy.kill
-    
-
-    #create buttons
-    potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
-    restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
-    quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
-    
-
-    run = True
-    while run:
-
-        clock.tick(fps)
-        draw_bg()
-        draw_panel()
-        draw_text("Level: " + str(score),font,white,1150,0)
-
-        knight.draw()
-        knight.update()
-
-        spawn_level()
 
         #draw damage text
         damage_text_group.update()
@@ -424,10 +420,9 @@ def play():
                                 knight.potions -= 1
                                 damage_text = DamageText(knight.rect.centerx, knight.rect.y, str(heal_amount), green)
                                 damage_text_group.add(damage_text)
-                            
+                                
             else:
                 game_over = -1
-
 
             #enemy action
             for count, enemy in enumerate(current_enemies_list):
@@ -452,7 +447,7 @@ def play():
             if enemy.alive == True:
                 alive_enemies += 1
         if alive_enemies == 0:
-            game_over - 1
+            game_over = 1
 
 
         #check if game is over
@@ -464,12 +459,17 @@ def play():
                     action_cooldown = 0
                     game_over = 0
                     main_menu()
-            if game_over == 0:
-                screen.blit(victory_img, (350, 50))
-                reset_level()
-                spawn_level()
+            if game_over == 1:
+                count = 0
+                while count <= 5:
+                    count = count + 1
+                    screen.blit(victory_img, (350, 50))
+                    print(count)
+                else:
+                    game_over = 0
+                    count = 0
                 
-
+                
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
