@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -261,7 +262,7 @@ def play():
     potion_effect = 20 
     clicked = False
     game_over = 0
-    score = 0
+    score = 1
 
     #load images
     img = pygame.image.load("img/Background/background.png").convert_alpha()
@@ -275,6 +276,7 @@ def play():
     img = pygame.image.load('img/Icons/victory.png').convert_alpha()
     victory_img = pygame.transform.scale(img,(img.get_width() * 1.6, img.get_height() * 1.6 ))
     restart_img = pygame.image.load("img/Icons/restart.png").convert_alpha()
+    next_img = pygame.image.load("img/Icons/next.png").convert_alpha()
     quitgame_img = pygame.image.load("img/Icons/quit.png").convert_alpha()
 
     #drawing text
@@ -301,35 +303,45 @@ def play():
     #creates an empty list for the enemies 
     current_enemies_list = []
 
-    game_level = random.randint(1,16)
+    game_level = random.randint(1,20)
 
     # creates different levels for the user to cycle through
     def random_level():
         if not current_enemies_list:
             if game_level in range(1,6):
-                bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-                bandit2 = Character(1100, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
+                bandit1 = Character(900, 425, "Bandit", 20, 6, 8, 0, 750, screen_H - bottom_panel + 50, 20)
+                bandit2 = Character(1100, 425, "Bandit", 20, 6, 8, 0, 750, screen_H - bottom_panel + 120, 20)
                 current_enemies_list.append(bandit1)
                 current_enemies_list.append(bandit2)
-        
-            elif game_level in range(7,9):
-                bandit1 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
+            
+            elif game_level in range(6,9):
+                bandit3 = Character(900, 425, "Bandit", 10, 6, 8, 0, 750, screen_H - bottom_panel + 50, 10)
+                bandit4 = Character(1100, 425, "Bandit", 10, 6, 8, 0, 750, screen_H - bottom_panel + 120, 10)
+                current_enemies_list.append(bandit3)
+                current_enemies_list.append(bandit4)
+            
+            elif game_level in range(9,13):
+                bandit1 = Character(900, 425, "Bandit", 20, 6, 8, 0, 750, screen_H - bottom_panel + 50, 20)
+                bandit4 = Character(1100, 425, "Bandit", 10, 6, 8, 0, 750, screen_H - bottom_panel + 120, 10)
                 current_enemies_list.append(bandit1)
-                    
-            elif game_level in range(9,11):
-                bandit2 = Character(900, 425, "Bandit", 20, 1, 0, 0, 750, screen_H - bottom_panel + 50, 2)
-                boss = Character(1150, 365, "Boss", 40, 1,0, 0, 750, screen_H - bottom_panel + 120, 2)
-                current_enemies_list.append(bandit2)
-                current_enemies_list.append(boss)
+                current_enemies_list.append(bandit4)
 
-            elif game_level in range(11,15):
-                boss = Character(1150, 365, "Boss", 40, 1, 0, 0, 750, screen_H - bottom_panel + 120, 2)
+            elif game_level in range(13,16):
+                bandit3 = Character(900, 425, "Bandit", 10, 6, 8, 0, 750, screen_H - bottom_panel + 50, 10)
+                boss = Character(1150, 365, "Boss", 40, 6,8, 0, 750, screen_H - bottom_panel + 120, 40)
+                current_enemies_list.append(bandit3)
                 current_enemies_list.append(boss)
-    
+                    
+            elif game_level in range(16,20):
+                bandit1 = Character(900, 425, "Bandit", 20, 6, 8, 0, 750, screen_H - bottom_panel + 50, 20)
+                boss = Character(1150, 365, "Boss", 40, 6,8, 0, 750, screen_H - bottom_panel + 120, 40)
+                current_enemies_list.append(bandit1)
+                current_enemies_list.append(boss)
 
     #create buttons
     potions_button = GameButton(screen, 500, screen_H - bottom_panel + 70, potion_img, 64, 64)
     restart_button = GameButton(screen, 550, 160, restart_img, 180, 40)
+    next_button = GameButton(screen, 550, 160, next_img, 180, 40)
     quit_button = GameButton(screen, 0,0, quitgame_img, 64, 64)
 
     run = True
@@ -381,8 +393,9 @@ def play():
             main_menu()
 
         if game_over == 0:
-            game_level = random.randint(1,16)
+            game_level = random.randint(1,20)
             random_level()
+
 		#player action
             if knight.alive == True:
                 if current_fighter == 1:
@@ -433,12 +446,11 @@ def play():
             if enemy.alive == True:
                 alive_enemies += 1
         if alive_enemies == 0:
-            score += 1
             game_over = 1
 
-
         #check if game is over
-        if game_over != 0:               
+        if game_over != 0: 
+
             if game_over == -1:
                 screen.blit(defeat_img, (290, 50))
                 if restart_button.draw():
@@ -446,19 +458,22 @@ def play():
                     action_cooldown = 0
                     game_over = 0
                     main_menu()
+
             if game_over == 1:
-                n = len(current_enemies_list) - 1
-                while n >= 0:
-                    if not current_enemies_list[n].alive:
-                        current_enemies_list.pop(n)
-                    n -= 1
                 screen.blit(victory_img, (350, 50))
-                current_fighter = 1
-                action_cooldown = 0
-                game_over = 0
+                if next_button.draw():
+                    n = len(current_enemies_list) - 1
+                    while n >= 0:
+                        if not current_enemies_list[n].alive:
+                            current_enemies_list.pop(n)
+                        n -= 1
+                    current_fighter = 1
+                    action_cooldown = 0
+                    knight.potions += 1
+                    score += 1
+                    game_over = 0
                 
-                
-                
+                  
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
