@@ -184,7 +184,7 @@ class DamageText(pygame.sprite.Sprite):
         self.rect.y -= 1
         #deletes text
         self.counter += 1
-        if self.counter > 60:
+        if self.counter > 80:
             self.kill()
 damage_text_group = pygame.sprite.Group()
 
@@ -276,7 +276,8 @@ def play():
     img = pygame.image.load('img/Icons/victory.png').convert_alpha()
     victory_img = pygame.transform.scale(img,(img.get_width() * 1.6, img.get_height() * 1.6 ))
     restart_img = pygame.image.load("img/Icons/restart.png").convert_alpha()
-    next_img = pygame.image.load("img/Icons/next.png").convert_alpha()
+    img = pygame.image.load("img/Icons/next.png").convert_alpha()
+    next_img = pygame.transform.scale(img,(img.get_width() * 1.8, img.get_height() * 1.8))
     quitgame_img = pygame.image.load("img/Icons/quit.png").convert_alpha()
 
     #drawing text
@@ -298,12 +299,12 @@ def play():
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
 
     #instaciation of the knight
-    knight = Character(250, 425,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
+    knight = Character(250, 425,"Knight", 50, 10, 1, 5, 150, screen_H - bottom_panel + 50, 50)
 
     #creates an empty list for the enemies 
     current_enemies_list = []
 
-    game_level = random.randint(1,20)
+    game_level = random.randint(1,22)
 
     # creates different levels for the user to cycle through
     def random_level():
@@ -326,15 +327,15 @@ def play():
                 current_enemies_list.append(bandit1)
                 current_enemies_list.append(bandit4)
 
-            elif game_level in range(13,16):
+            elif game_level in range(13,17):
                 bandit3 = Character(900, 425, "Bandit", 10, 6, 8, 0, 750, screen_H - bottom_panel + 50, 10)
                 boss = Character(1150, 365, "Boss", 40, 6,8, 0, 750, screen_H - bottom_panel + 120, 40)
                 current_enemies_list.append(bandit3)
                 current_enemies_list.append(boss)
                     
-            elif game_level in range(16,20):
+            elif game_level in range(17,22):
                 bandit1 = Character(900, 425, "Bandit", 20, 6, 8, 0, 750, screen_H - bottom_panel + 50, 20)
-                boss = Character(1150, 365, "Boss", 40, 6,8, 0, 750, screen_H - bottom_panel + 120, 40)
+                boss = Character(1150, 365, "Boss", 40, 12,10, 0, 750, screen_H - bottom_panel + 120, 40)
                 current_enemies_list.append(bandit1)
                 current_enemies_list.append(boss)
 
@@ -393,7 +394,7 @@ def play():
             main_menu()
 
         if game_over == 0:
-            game_level = random.randint(1,20)
+            game_level = random.randint(1,22)
             random_level()
 
 		#player action
