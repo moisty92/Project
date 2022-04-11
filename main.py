@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 
 pygame.init()
 
@@ -299,7 +298,7 @@ def play():
             draw_text(f"{i.name} HP: {i.hp}", font, red, 700, (screen_H - bottom_panel + 15) + count * 70)
 
     #instaciation of the knight
-    knight = Character(250, 425,"Knight", 50, 10, 1, 5, 150, screen_H - bottom_panel + 50, 50)
+    knight = Character(250, 425,"Knight", 50, 10, 12, 5, 150, screen_H - bottom_panel + 50, 50)
 
     #creates an empty list for the enemies 
     current_enemies_list = []
